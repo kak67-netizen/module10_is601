@@ -1,70 +1,89 @@
-
-# Module 9: Working with Raw SQL in pgAdmin
+# Module 10: Secure User Model, Validation, Database Testing, and Docker Deployment
 
 ## Overview
-This project demonstrates how to create and manage a PostgreSQL database using raw SQL commands in pgAdmin.
 
-Docker Compose is used to run three services:
+This project builds on the FastAPI and PostgreSQL application from Module 9 by adding a secure SQLAlchemy user model, Pydantic validation, password hashing, database testing, and an automated CI/CD workflow.
+
+The application uses Docker Compose to run:
 - FastAPI application
 - PostgreSQL database
 - pgAdmin 4
 
+GitHub Actions is used to run automated tests and build and push the Docker image to Docker Hub after the tests pass.
+
 ## Technologies
+
 - Python
 - FastAPI
 - PostgreSQL
+- SQLAlchemy
+- Pydantic
+- pwdlib / Argon2
 - pgAdmin 4
+- Docker
 - Docker Compose
-- SQL
+- GitHub Actions
+- Pytest
+- Playwright
 
-## Running the Project
+## Secure User Model
 
-From the project directory, run:
+The SQLAlchemy `User` model contains:
 
-```bash
-docker compose up --build -d
-```
+- `id`
+- `username`
+- `email`
+- `password_hash`
+- `created_at`
 
-Check that the containers are running:
+The `username` and `email` fields use unique constraints.
 
-```bash
-docker compose ps
-```
+Passwords are hashed before being stored in the database. Plain-text passwords are never stored.
 
-Open:
-- FastAPI: http://localhost:8000
-- pgAdmin: http://localhost:5050
+## Pydantic Schemas
 
-## Database Configuration
+The project includes two user schemas:
 
-The Docker Compose configuration uses the following local development credentials:
+### UserCreate
+
+Used when creating a user and validates:
+
+- Username
+- Email address
+- Password
+
+### UserRead
+
+Used when returning user information.
+
+The password and password hash are excluded from the response.
+
+## Password Security
+
+Password hashing and verification are handled in:
+
+`app/auth/security.py`
+
+The application uses secure password hashing through `pwdlib` with Argon2.
+
+## Database
+
+PostgreSQL runs through Docker Compose.
+
+Local development configuration:
 
 - Database: `fastapi_db`
 - PostgreSQL username: `postgres`
 - PostgreSQL password: `postgres`
-- pgAdmin email: `admin@example.com`
-- pgAdmin password: `admin123`
 - PostgreSQL hostname within Docker: `db`
 - PostgreSQL port: `5432`
+- pgAdmin: `http://localhost:5050`
 
-These are demonstration credentials only and should not be used in production.
+These credentials are for local development only and should not be used in production.
 
-## SQL Operations
+## Running the Project
 
-The `module9_queries.sql` file demonstrates:
+From the project directory, start the Docker services:
 
-1. Creating the `users` and `calculations` tables
-2. Inserting user and calculation records
-3. Retrieving records using `SELECT`
-4. Joining tables using `JOIN`
-5. Updating records using `UPDATE`
-6. Deleting records using `DELETE`
-7. Verifying the final database records
-
-The SQL statements should be executed in the documented order using pgAdmin's Query Tool. Do not rerun the entire script against an already populated database.
-
-## Documentation
-
-The `screenshots/` folder contains evidence of the SQL operations and Docker environment.
-
-The assignment report documents the results and includes a reflection on the learning experience.
+```bash
+docker compose up --build -d
